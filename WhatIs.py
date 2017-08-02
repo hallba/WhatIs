@@ -1,4 +1,4 @@
-import ctypes
+from ctypes import *
 
 '''
 void jpcnn_classify_image(void* networkHandle, void* inputHandle, unsigned int flags, int layerOffset, float** outPredictionsValues, int* outPredictionsLength, char*** outPredictionsNames, int* outPredictionsNamesLength);
@@ -22,24 +22,36 @@ onsLabelsLength);
 
 class deepBelief():
 	def __init__(self,netfile):
-		self.lib = ctypes.CDLL("libjpcnn.so")
+		self.lib = CDLL("libjpcnn.so")
 		self.network = self.lib.jpcnn_create_network(netfile)
 		self.image = ""
 		
 	def classify(self,imagefile):
 		imageHandle = self.lib.jpcnn_create_image_buffer_from_file(imagefile)
 		self.image=imagefile
-		z = ctypes.c_int(0)
-		predictionsLength = ctypes.c_int()
-		predictionsLabelsLength = ctypes.c_int()
-		predictions = (ctypes.c_float*1000 )()
-		predictionsLabels = ctypes.POINTER ( ctypes.c_char_p*1000  )()
+		z = c_int(0)
+		predictionsLength = c_int()
+		predictionsLabelsLength = c_int()
+		predictions = (POINTER(c_float))()
+		predictionsLabels = (POINTER(c_char_p))()
+
 		classify = self.lib.jpcnn_classify_image
-		classify.argtypes = (ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.POINTER(ctypes.c_float)), ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.POINTER(ctypes.c_char_p)), ctypes.POINTER(ctypes.c_int) )
+		classify.argtypes = (c_void_p, c_void_p, c_int, c_int, POINTER(POINTER(c_float)), POINTER(c_int), POINTER(POINTER(c_char_p)), POINTER(c_int) )
 		
-		self.lib.jpcnn_classify_image(self.network, imageHandle, z, z, ctypes.cast(predictions, ctypes.POINTER(ctypes.POINTER(ctypes.c_float))), predictionsLength, ctypes.cast(predictionsLabels,ctypes.POINTER(ctypes.c_char_p)) , predictionsLabelsLength )
+		classify(self.network, imageHandle, z, z, byref(predictions), predictionsLength, byref(predictionsLabels), predictionsLabelsLength)
+		
 		self.predictionResults = predictions
 		self.predictionNames = predictionsLabels
 		self.lib.jpcnn_destroy_image_buffer(imageHandle)
 		
-		return predictionsLength, predictionsLabelsLength, predictions, predictionsLabels
+		bestId = 0
+		bestValue = 0
+		for i in range(predictionsLength.value):
+			if predictions[i]>bestValue:
+				bestValue = predictions[i]
+				bestId=i
+		
+		self.best = self.predictionNames[bestId]
+		self.bestLikelihood = self.predictionResults[bestId]
+		
+		return self.best, self.bestLikelihood
