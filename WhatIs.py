@@ -21,7 +21,7 @@ onsLabelsLength);
 '''
 
 class deepBelief():
-	def __init__(self,netfile):
+	def __init__(self,netfile='networks/jetpac.ntwk'):
 		self.lib = CDLL("libjpcnn.so")
 		self.network = self.lib.jpcnn_create_network(netfile)
 		self.image = ""
