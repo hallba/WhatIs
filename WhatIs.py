@@ -1,4 +1,5 @@
 from ctypes import *
+import os.path
 
 '''
 void jpcnn_classify_image(void* networkHandle, void* inputHandle, unsigned int flags, int layerOffset, float** outPredictionsValues, int* outPredictionsLength, char*** outPredictionsNames, int* outPredictionsNamesLength);
@@ -25,8 +26,12 @@ class deepBelief():
 		self.lib = CDLL("libjpcnn.so")
 		self.network = self.lib.jpcnn_create_network(netfile)
 		self.image = ""
-		
+		self.best = ""
+		self.bestLikelihood = 0	
 	def classify(self,imagefile):
+		if not os.path.isfile(imagefile):
+			print "No such file", imagefile
+			return "",0
 		imageHandle = self.lib.jpcnn_create_image_buffer_from_file(imagefile)
 		self.image=imagefile
 		z = c_int(0)
@@ -55,3 +60,15 @@ class deepBelief():
 		self.bestLikelihood = self.predictionResults[bestId]
 		
 		return self.best, self.bestLikelihood
+
+if __name__ == "__main__":
+	print "Testing WhatIs"
+	db = deepBelief()
+	print "==Testing a file that doesn't exist=="
+	#Test a non-existant file
+	db.classify("Fake.jpg")
+	print db.best, db.bestLikelihood
+	print "==Testing a photo of a hippo=="
+	#Test the hippo
+	db.classify("tests/Hippo.jpg")
+	print db.best, db.bestLikelihood
