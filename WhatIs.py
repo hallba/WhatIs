@@ -1,5 +1,5 @@
 from ctypes import *
-import os.path
+import os.path, os.uname
 
 '''
 void jpcnn_classify_image(void* networkHandle, void* inputHandle, unsigned int flags, int layerOffset, float** outPredictionsValues, int* outPredictionsLength, char*** outPredictionsNames, int* outPredictionsNamesLength);
@@ -20,6 +20,15 @@ networkHandle = jpcnn_create_network(networkFileName);
 onsLabelsLength);
   jpcnn_destroy_image_buffer(imageHandle);
 '''
+
+#Pi specific code
+if os.uname()[4].startsWith("arm"):
+	import picamera
+	pi = True
+	piImage = "piVision.jpg"
+else
+	pi = False
+	piImage = None
 
 class deepBelief():
 	def __init__(self,netfile='networks/jetpac.ntwk'):
@@ -61,6 +70,8 @@ class deepBelief():
 		
 		return self.best, self.bestLikelihood
 
+
+
 if __name__ == "__main__":
 	print "Testing WhatIs"
 	db = deepBelief()
@@ -72,3 +83,11 @@ if __name__ == "__main__":
 	#Test the hippo
 	db.classify("tests/Hippo.jpg")
 	print db.best, db.bestLikelihood
+	if pi:
+		camera = picamera.PiCamera()
+		camera.rotation=90
+	while pi:
+		time.sleep(2)
+		camera.capture(piImage)
+		db.classify(piImage)
+		print db.best, db.bestLikelihood
