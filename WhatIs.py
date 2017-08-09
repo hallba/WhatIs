@@ -1,5 +1,5 @@
 from ctypes import *
-import os.path, os.uname
+import os.path
 
 '''
 void jpcnn_classify_image(void* networkHandle, void* inputHandle, unsigned int flags, int layerOffset, float** outPredictionsValues, int* outPredictionsLength, char*** outPredictionsNames, int* outPredictionsNamesLength);
@@ -22,11 +22,11 @@ onsLabelsLength);
 '''
 
 #Pi specific code
-if os.uname()[4].startsWith("arm"):
+if os.uname()[4].startswith("arm"):
 	import picamera
 	pi = True
 	piImage = "piVision.jpg"
-else
+else:
 	pi = False
 	piImage = None
 
