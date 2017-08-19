@@ -1,5 +1,5 @@
 from ctypes import *
-import os.path
+import os.path, time
 
 '''
 void jpcnn_classify_image(void* networkHandle, void* inputHandle, unsigned int flags, int layerOffset, float** outPredictionsValues, int* outPredictionsLength, char*** outPredictionsNames, int* outPredictionsNamesLength);
@@ -84,10 +84,12 @@ if __name__ == "__main__":
 	db.classify("tests/Hippo.jpg")
 	print db.best, db.bestLikelihood
 	if pi:
+		print "starting camera"
 		camera = picamera.PiCamera()
 		camera.rotation=90
-	while pi:
 		time.sleep(2)
+	while pi:
+		print "Taking photo"	
 		camera.capture(piImage)
 		db.classify(piImage)
 		print db.best, db.bestLikelihood
